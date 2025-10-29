@@ -355,7 +355,7 @@ def main():
     args = docopt(__doc__)
 
     if args['--version']:
-        print(f'liquidctl v{__version__} ({platform.platform()})')
+        print(f'liquidctl v{__version__} (msi-s360) ({platform.platform()})')
         sys.exit(0)
 
     if args['--debug']:

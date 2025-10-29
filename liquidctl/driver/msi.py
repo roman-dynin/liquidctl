@@ -335,6 +335,12 @@ class MpgCooler(UsbHidDriver):
             "Suspected MSI MPG Coreliquid",
             {"_unsafe": ["experimental_coreliquid_cooler"]},
         ),
+        (
+            0x0DB0,
+            0x6A05,
+            "MSI MEG CoreLiquid S360",
+            {"fan_count": 3},
+        ),
     ]
     HAS_AUTOCONTROL = True
 
@@ -367,8 +373,9 @@ class MpgCooler(UsbHidDriver):
         # have the desired usage page, or that on that system a
         # single handle is returned for that device interface (see: #259)
 
-        if handle.hidinfo["usage_page"] == EXTRA_USAGE_PAGE:
-            return
+        # Dirty hack for MSI S360 to make it actually work in CachyOS 🩼
+        # if handle.hidinfo["usage_page"] == EXTRA_USAGE_PAGE:
+        #     return
         yield from super().probe(handle, **kwargs)
 
     def connect(self, **kwargs):
@@ -391,7 +398,9 @@ class MpgCooler(UsbHidDriver):
         self._aprom_firmware_version = aprom_hi << 4 + aprom_lo
         ldrom_hi, ldrom_lo = self.get_firmware_version_ldrom()
         self._ldrom_firmware_version = ldrom_hi << 4 + ldrom_lo
-        self._oled_firmware_version = self.get_oled_firmware_version()
+        # Dirty hack for MSI S360 to make it actually work 🩼
+        # self._oled_firmware_version = self.get_oled_firmware_version()
+        self._oled_firmware_version = ""
 
         return ret
 
@@ -563,19 +572,26 @@ class MpgCooler(UsbHidDriver):
         self.set_fan_temp_config(fan_temp_cfg)
         self._send_safe_temp()
 
-    def parse_channel(self, channel):
+   def parse_channel(self, channel):
+        error = ValueError(
+            'unknown channel, should be "fans", "fan1", "fan2", "fan3", "waterblock-fan" or "pump".'
+        )
+
         if channel == "pump":
             return [4]
         elif channel == "fans":
             return range(_RAD_FAN_COUNT)
         elif channel == "waterblock-fan":
             return [3]
-        elif channel[:3] == "fan" and (int(channel[3:]) in range(_RAD_FAN_COUNT)):
-            return [int(channel[3:])]
+        elif channel[:3] == "fan":
+            fan = int(channel[3:])-1
+
+            if fan not in range(_RAD_FAN_COUNT):
+                raise error
+
+            return [fan]
         else:
-            raise ValueError(
-                'unknown channel, should be "fans", "fan1", "fan2", "fan3", "waterblock-fan" or "pump".'
-            )
+            raise error
 
     @staticmethod
     def clamp_and_pad(values):

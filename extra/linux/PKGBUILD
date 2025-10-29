@@ -1,0 +1,61 @@
+pkgname=liquidctl-msi-s360-git
+
+pkgdesc="Cross-platform tool and drivers for liquid coolers and other devices. Fork with support MSI MEG CoreLiquid S360"
+
+pkgver=0
+
+pkgrel=1
+
+arch=('any')
+
+license=('GPL3')
+
+url='https://github.com/roman-dynin/liquidctl'
+
+provides=("${pkgname%-git}")
+
+conflicts=("${pkgname%-git}")
+
+depends=(
+  i2c-tools
+  python
+  python-colorlog
+  python-crcmod
+  python-docopt
+  python-hidapi
+  python-pillow
+  python-pyusb
+  python-setuptools
+)
+
+makedepends=(
+  git
+  python-build
+  python-installer
+  python-setuptools-scm
+  python-wheel
+)
+
+source=("$pkgname::git+https://github.com/roman-dynin/liquidctl.git#branch=feature/msi-s360")
+
+sha256sums=(SKIP)
+
+pkgver() {
+  cd $pkgname
+
+  printf "r%s" "$(git rev-parse --short HEAD)"
+}
+
+build() {
+  cd $pkgname
+
+  python -m build --wheel --no-isolation
+}
+
+package() {
+  cd $pkgname
+
+  python -m installer --destdir="$pkgdir" dist/liquidctl-"$(python -m setuptools_scm)"-*.whl
+
+  install -Dm644 -t "$pkgdir"/usr/lib/udev/rules.d/ extra/linux/71-liquidctl.rules
+}
