@@ -572,7 +572,7 @@ class MpgCooler(UsbHidDriver):
         self.set_fan_temp_config(fan_temp_cfg)
         self._send_safe_temp()
 
-   def parse_channel(self, channel):
+    def parse_channel(self, channel):
         error = ValueError(
             'unknown channel, should be "fans", "fan1", "fan2", "fan3", "waterblock-fan" or "pump".'
         )
