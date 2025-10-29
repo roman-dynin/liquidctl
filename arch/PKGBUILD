@@ -2,7 +2,7 @@ pkgname=liquidctl-msi-s360-git
 
 pkgdesc="Cross-platform tool and drivers for liquid coolers and other devices. Fork with support MSI MEG CoreLiquid S360"
 
-pkgver=r8a370e2
+pkgver=0
 
 pkgrel=1
 
